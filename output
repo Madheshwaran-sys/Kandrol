@@ -1,0 +1,2 @@
+Buyer,Property,LoanAmountRequested,BankCollateralRequired,CollateralOffered,CollateralGAP,Status
+YourName Buyer,"123 Main St, New City",500000.00,100000.00,0.00,100000.00,DENIED - NO COLLATERAL
