@@ -1,0 +1,59 @@
+-- 1. Table to store buyer information
+CREATE TABLE Buyers (
+    BuyerID INT PRIMARY KEY,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    CreditScore INT,
+    CurrentAssets DECIMAL(15, 2) -- Represents existing funds/collateral
+);
+
+-- 2. Table to store property information
+CREATE TABLE Properties (
+    PropertyID INT PRIMARY KEY,
+    Address VARCHAR(255),
+    PurchasePrice DECIMAL(15, 2)
+);
+
+-- 3. Table to store the loan application details
+CREATE TABLE LoanApplications (
+    ApplicationID INT PRIMARY KEY,
+    BuyerID INT,
+    PropertyID INT,
+    LoanAmountRequested DECIMAL(15, 2),
+    BankCollateralRequired DECIMAL(15, 2), -- The value the bank needs to secure the loan
+    CollateralOffered DECIMAL(15, 2),    -- What the buyer actually has
+    Status VARCHAR(50) DEFAULT 'PENDING',
+    FOREIGN KEY (BuyerID) REFERENCES Buyers(BuyerID),
+    FOREIGN KEY (PropertyID) REFERENCES Properties(PropertyID)
+);
+-- Insert the Buyer (You)
+-- CurrentAssets = 0.00, representing no money or collateral
+INSERT INTO Buyers (BuyerID, FirstName, LastName, CreditScore, CurrentAssets)
+VALUES (101, 'YourName', 'Buyer', 720, 0.00);
+
+-- Insert the Property
+INSERT INTO Properties (PropertyID, Address, PurchasePrice)
+VALUES (201, '123 Main St, New City', 500000.00);
+
+-- Insert the Loan Application demonstrating the deadlock
+-- The loan amount requested is the full purchase price.
+-- The bank requires 100000.00 in collateral (e.g., 20% of the property value).
+-- The buyer offers 0.00, as they have no assets/collateral.
+INSERT INTO LoanApplications (ApplicationID, BuyerID, PropertyID, LoanAmountRequested, BankCollateralRequired, CollateralOffered, Status)
+VALUES (301, 101, 201, 500000.00, 100000.00, 0.00, 'DENIED - NO COLLATERAL');
+SELECT
+    B.FirstName || ' ' || B.LastName AS Buyer,
+    P.Address AS Property,
+    L.LoanAmountRequested,
+    L.BankCollateralRequired,
+    L.CollateralOffered,
+    (L.BankCollateralRequired - L.CollateralOffered) AS CollateralGAP,
+    L.Status
+FROM
+    LoanApplications L
+JOIN
+    Buyers B ON L.BuyerID = B.BuyerID
+JOIN
+    Properties P ON L.PropertyID = P.PropertyID
+WHERE
+    L.ApplicationID = 301;
